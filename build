@@ -1,0 +1,37 @@
+#!/bin/bash
+USERNAME=$USER
+
+while [[ $# -gt 0 ]]; do
+	key="$1"
+	case $key in
+	--username)
+		USERNAME="$2"
+		shift
+		shift
+		;;
+	*)
+		echo "Unknown option: $key"
+		exit 1
+		;;
+	esac
+done
+
+# Automatically detect podman or docker
+if command -v podman >/dev/null 2>&1; then
+	eng=podman
+elif command -v docker >/dev/null 2>&1; then
+	eng=docker
+else
+	echo "Neither Podman nor Docker was found on your system."
+	exit 1
+fi
+
+if [ "$USERNAME" = "" ]; then
+	echo "No username provided"
+	exit 1
+else
+	echo "Username: $USERNAME"
+fi
+
+# Build the image
+$eng build . -t nvim_dev --build-arg UNAME=$USERNAME
