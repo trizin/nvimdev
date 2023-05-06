@@ -5,38 +5,69 @@ WORKSPACEDIR=$(pwd)
 NEOVIMDIR="/home/$USER/.config/nvim/"
 ID="1"
 
+display_help() {
+	echo "Usage: $(basename $0) [COMMAND] [OPTIONS]"
+	echo ""
+	echo "Commands:"
+	echo "  run           Run a container or attach to an existing one"
+	echo "  list          List all containers created by this script"
+	echo "  remove        Remove a stopped container"
+	echo "  logs          Display logs of a container"
+	echo "  -h, --help    Display this help message"
+	echo ""
+	echo "Options:"
+	echo "  --workspacedir DIR  Set the workspace directory (default: current directory)"
+	echo "  --neovimdir    DIR  Set the Neovim configuration directory (default: ~/.config/nvim)"
+	echo "  --id           ID   Set the container ID (default: 1)"
+}
+
+container_logs() {
+	local id="$1"
+	local eng="$2"
+
+	$eng logs "${id}_nvim_dev"
+}
+
+remove_container() {
+	local id="$1"
+	local eng="$2"
+
+	$eng rm "${id}_nvim_dev"
+	echo "Removed ${id}_nvim_dev container"
+}
+
 # Function to start and attach to an existing container
 start_and_attach_container() {
-    local id="$1"
-    local eng="$2"
+	local id="$1"
+	local eng="$2"
 
-    $eng start "${id}_nvim_dev"
-    $eng attach "${id}_nvim_dev"
+	$eng start "${id}_nvim_dev"
+	$eng attach "${id}_nvim_dev"
 }
 
 # Function to run a container
 run_container() {
-    local id="$1"
-    local eng="$2"
-    local workspacedir="$3"
-    local neovimdir="$4"
+	local id="$1"
+	local eng="$2"
+	local workspacedir="$3"
+	local neovimdir="$4"
 
-    # Check if a container with the same ID already exists
-    container_exists=$($eng ps -a --filter "name=${id}_nvim_dev" --format "{{.Names}}")
+	# Check if a container with the same ID already exists
+	container_exists=$($eng ps -a --filter "name=${id}_nvim_dev" --format "{{.Names}}")
 
-    if [ -n "$container_exists" ]; then
-        echo "Starting existing ${id}_nvim_dev container"
-        start_and_attach_container "$id" "$eng"
-    else
-        echo "Creating new ${id}_nvim_dev container"
+	if [ -n "$container_exists" ]; then
+		echo "Starting existing ${id}_nvim_dev container"
+		start_and_attach_container "$id" "$eng"
+	else
+		echo "Creating new ${id}_nvim_dev container"
 
-        if [ -z "$workspacedir" ] || [ -z "$neovimdir" ]; then
-            echo "Both --workspacedir and --neovimdir are required when creating a new container"
-            exit 1
-        fi
+		if [ -z "$workspacedir" ] || [ -z "$neovimdir" ]; then
+			echo "Both --workspacedir and --neovimdir are required when creating a new container"
+			exit 1
+		fi
 
-        $eng run --name "${id}_nvim_dev" --userns=keep-id --network host -v "$workspacedir":/workspace:Z,U -v "$neovimdir":/neovim:ro -it nvim_dev
-    fi
+		$eng run --name "${id}_nvim_dev" --userns=keep-id --network host -v "$workspacedir":/workspace:Z,U -v "$neovimdir":/neovim:ro -it nvim_dev
+	fi
 }
 
 # Function to list all containers created by this script
@@ -93,6 +124,15 @@ run)
 	;;
 list)
 	list_containers "$eng"
+	;;
+remove)
+	remove_container "$ID" "$eng"
+	;;
+logs)
+	container_logs "$ID" "$eng"
+	;;
+-h | --help)
+	display_help
 	;;
 *)
 	echo "Unknown command: $COMMAND"
