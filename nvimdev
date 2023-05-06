@@ -3,6 +3,7 @@
 # Set the default values
 WORKSPACEDIR=$(pwd)
 NEOVIMDIR="/home/$USER/.config/nvim/"
+SSH_DIR=""
 ID="1"
 
 display_help() {
@@ -66,14 +67,14 @@ run_container() {
 			exit 1
 		fi
 
-		$eng run --name "${id}_nvim_dev" --userns=keep-id --network host -v "$workspacedir":/workspace:Z,U -v "$neovimdir":/neovim:ro -it nvim_dev
+		$eng run --name "${id}_nvim_dev" --userns=keep-id --network host -v "$workspacedir":/workspace:Z,U -v "$neovimdir":/neovim:ro $SSH_DIR -it nvim_dev
 	fi
 }
 
 # Function to list all containers created by this script
 list_containers() {
 	local eng="$1"
-	$eng ps -a | grep "nvim_dev"
+	$eng ps -a --format "{{.Names}}" | grep "nvim_dev"
 }
 
 # Parse the command line arguments
@@ -98,6 +99,10 @@ while [[ $# -gt 0 ]]; do
 		shift
 		shift
 		;;
+	--ssh)
+		SSH_DIR="-v /home/$USER/.ssh:/home/$USER/.ssh:ro,U,Z"
+		shift
+		;;
 	*)
 		echo "Unknown option: $key"
 		exit 1
@@ -114,8 +119,6 @@ else
 	echo "Neither Podman nor Docker was found on your system."
 	exit 1
 fi
-
-echo "Using $eng"
 
 # Execute the command
 case $COMMAND in
