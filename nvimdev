@@ -4,29 +4,20 @@
 WORKSPACEDIR=$(pwd)
 NEOVIMDIR="/home/$USER/.config/nvim/"
 SSH_DIR=""
-ID="1"
 
 display_help() {
 	echo "Usage: $(basename $0) [COMMAND] [OPTIONS]"
 	echo ""
 	echo "Commands:"
-	echo "  run           Run a container or attach to an existing one"
-	echo "  list          List all containers created by this script"
-	echo "  remove        Remove a stopped container"
-	echo "  logs          Display logs of a container"
+	echo "  s  start [id]    Create a container or attach to an existing one with the given ID"
+	echo "  l, list          List all containers created by this script"
+	echo "  r, remove [id]   Remove a stopped container"
 	echo "  -h, --help    Display this help message"
 	echo ""
 	echo "Options:"
 	echo "  --workspacedir DIR  Set the workspace directory (default: current directory)"
 	echo "  --neovimdir    DIR  Set the Neovim configuration directory (default: ~/.config/nvim)"
-	echo "  --id           ID   Set the container ID (default: 1)"
-}
-
-container_logs() {
-	local id="$1"
-	local eng="$2"
-
-	$eng logs "${id}_nvim_dev"
+	echo "  --ssh                Mount the .ssh directory to the container"
 }
 
 remove_container() {
@@ -74,7 +65,7 @@ run_container() {
 # Function to list all containers created by this script
 list_containers() {
 	local eng="$1"
-	$eng ps -a --format "{{.Names}}" | grep "nvim_dev"
+	$eng ps -a --format "{{.Names}}" | grep "nvim_dev" | sed "s/_nvim_dev$//"
 }
 
 # Parse the command line arguments
@@ -94,18 +85,18 @@ while [[ $# -gt 0 ]]; do
 		shift
 		shift
 		;;
-	--id)
-		ID="$2"
-		shift
-		shift
-		;;
 	--ssh)
 		SSH_DIR="-v /home/$USER/.ssh:/home/$USER/.ssh:ro,U,Z"
 		shift
 		;;
 	*)
-		echo "Unknown option: $key"
-		exit 1
+		if [ -z "$ID" ]; then
+			ID="$1"
+			shift
+		else
+			echo "Unknown option: $key"
+			exit 1
+		fi
 		;;
 	esac
 done
@@ -122,24 +113,29 @@ fi
 
 # Execute the command
 case $COMMAND in
-run)
+s | start)
+	if [ -z "$ID" ]; then
+		echo "You must provide an ID for the container."
+		exit 1
+	fi
 	run_container "$ID" "$eng" "$WORKSPACEDIR" "$NEOVIMDIR"
 	;;
-list)
+l | list)
 	list_containers "$eng"
 	;;
-remove)
+r | remove)
+	if [ -z "$ID" ]; then
+		echo "You must provide an ID for the container to remove."
+		exit 1
+	fi
 	remove_container "$ID" "$eng"
-	;;
-logs)
-	container_logs "$ID" "$eng"
 	;;
 -h | --help)
 	display_help
 	;;
 *)
 	echo "Unknown command: $COMMAND"
-	echo "Available commands: run, list"
+	echo "Available commands: start, list, remove, help"
 	exit 1
 	;;
 esac
