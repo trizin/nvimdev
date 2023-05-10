@@ -20,6 +20,23 @@ display_help() {
 	echo "  --ssh                Mount the .ssh directory to the container"
 }
 
+get_git_name_and_mail() {
+	# Get the git user name
+	git_name=$(git config --global user.name)
+	if [ -z "$git_name" ]; then
+		git_name=""
+	fi
+
+	# Get the git user email
+	git_email=$(git config --global user.email)
+	if [ -z "$git_email" ]; then
+		git_email=""
+	fi
+
+	# Return podman run --env string
+	echo "--env GIT_USER_NAME=$git_name --env GIT_USER_EMAIL=$git_email"
+}
+
 remove_container() {
 	local id="$1"
 	local eng="$2"
@@ -58,7 +75,9 @@ run_container() {
 			exit 1
 		fi
 
-		$eng run --name "${id}_nvim_dev" --userns=keep-id --network host -v "$workspacedir":/workspace:Z,U -v "$neovimdir":/neovim:ro $SSH_DIR -it nvim_dev
+		gitenvstring=$(get_git_name_and_mail)
+
+		$eng run --name "${id}_nvim_dev" $gitenvstring --userns=keep-id --network host -v "$workspacedir":/workspace:Z,U -v "$neovimdir":/neovim:Z,U $SSH_DIR -it nvim_dev
 	fi
 }
 

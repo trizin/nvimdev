@@ -16,5 +16,10 @@ if ! diff -r --include='*.lua' /neovim "${HOME}/.config/nvim" >/dev/null 2>&1; t
 	cp -r /neovim/* "${HOME}/.config/nvim/"
 fi
 
+if [ ! -z "$GIT_USER_NAME" ] && [ ! -z "$GIT_USER_EMAIL" ]; then
+	git config --global user.name "$GIT_USER_NAME"
+	git config --global user.email "$GIT_USER_EMAIL"
+fi
+
 cd /workspace
 exec /bin/zsh

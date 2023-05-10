@@ -54,7 +54,7 @@ RUN . "$HOME/.nvm/nvm.sh" \
 USER root
 
 RUN pacman -Syu --noconfirm go
-RUN pacman -Syu --noconfirm ripgrep man man-db man-pages zip
+RUN pacman -Syu --noconfirm ripgrep man man-db man-pages zip python3 lazygit git
 RUN mandb
 
 COPY entrypoint.sh /entrypoint.sh
