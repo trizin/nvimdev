@@ -12,8 +12,9 @@ RUN pacman -Syu --noconfirm \
     curl \
     zsh \
     tmux \
-    neovim 
+    neovim ripgrep man man-db man-pages zip python3 lazygit git openssl openssh go
 
+RUN mandb
 
 ARG UNAME
 ARG UID=1000
@@ -53,9 +54,6 @@ RUN . "$HOME/.nvm/nvm.sh" \
 
 USER root
 
-RUN pacman -Syu --noconfirm go
-RUN pacman -Syu --noconfirm ripgrep man man-db man-pages zip python3 lazygit git
-RUN mandb
 
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
