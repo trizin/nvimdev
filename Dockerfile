@@ -12,7 +12,7 @@ RUN pacman -Syu --noconfirm \
     curl \
     zsh \
     tmux \
-    neovim ripgrep man man-db man-pages zip python3 lazygit git openssl openssh go
+    neovim ripgrep man man-db man-pages zip python3 lazygit git openssl openssh go unzip
 
 RUN mandb
 
