@@ -5,7 +5,7 @@ WORKSPACEDIR=$(pwd)
 NEOVIMDIR="/home/$USER/.nvimdev"
 SSH_DIR=""
 X11_CONNECT=""
-
+NETWORK=""
 display_help() {
 	echo "Usage: $(basename $0) [COMMAND] [OPTIONS]"
 	echo ""
@@ -74,10 +74,10 @@ run_container() {
 			echo "Both --workspacedir and --neovimdir are required when creating a new container"
 			exit 1
 		fi
-           
+
 		gitenvstring=$(get_git_name_and_mail)
 
-		$eng run --name "${id}_nvim_dev" $gitenvstring $X11_CONNECT --userns=keep-id --network host -v "$workspacedir":/workspace:Z,U -v "$neovimdir":/config:ro,Z,U -it nvim_dev
+		$eng run --name "${id}_nvim_dev" $gitenvstring $X11_CONNECT --userns=keep-id $NETWORK -v "$workspacedir":/workspace:Z,U -v "$neovimdir":/config:ro,Z,U -it nvim_dev
 	fi
 }
 
@@ -108,7 +108,10 @@ while [[ $# -gt 0 ]]; do
 		X11_CONNECT="-e DISPLAY --security-opt label=type:container_runtime_t -v /tmp/.X11-unix:/tmp/.X11-unix"
 		shift
 		;;
-
+	--host)
+		NETWORK="--network host"
+		shift
+		;;
 	*)
 		if [ -z "$ID" ]; then
 			ID="$1"

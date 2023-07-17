@@ -20,6 +20,6 @@ if [ ! -z "$GIT_USER_NAME" ] && [ ! -z "$GIT_USER_EMAIL" ]; then
 fi
 
 chmod 600 ${HOME}/.ssh/id_rsa 
-
+source ${HOME}/.env
 cd /workspace
 exec /bin/zsh
